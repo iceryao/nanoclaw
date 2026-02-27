@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { query, HookCallback, PreCompactHookInput, PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
 import { fileURLToPath } from 'url';
+import { runGenericLlm } from './provider-generic-llm.js';
 
 interface ContainerInput {
   prompt: string;
@@ -506,6 +507,23 @@ async function main(): Promise<void> {
       error: `Failed to parse input: ${err instanceof Error ? err.message : String(err)}`
     });
     process.exit(1);
+  }
+
+  // Check for generic LLM mode (check secrets from input + process.env)
+  const secrets = containerInput.secrets || {};
+  const env = { ...process.env, ...secrets };
+  const isGenericMode =
+    env.LLM_PROVIDER === 'generic' ||
+    !!(env.LLM_API_KEY && env.LLM_API_BASE && env.LLM_MODEL);
+
+  if (isGenericMode) {
+    log('Using generic LLM provider (text-only mode)');
+    // Pass secrets to generic provider via process.env
+    for (const [key, value] of Object.entries(secrets)) {
+      process.env[key] = value;
+    }
+    await runGenericLlm(containerInput);
+    return;
   }
 
   // Build SDK env: merge secrets into process.env for the SDK only.
