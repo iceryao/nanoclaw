@@ -77,11 +77,26 @@ Run `npx tsx setup/index.ts --step container -- --runtime <chosen>` and parse th
 
 If HAS_ENV=true from step 2, read `.env` and check for `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. If present, confirm with user: keep or reconfigure?
 
-AskUserQuestion: Claude subscription (Pro/Max) vs Anthropic API key?
+AskUserQuestion: 选择模型提供方式？
+选项：
+- Claude 订阅（Pro/Max）
+- Anthropic API Key
+- 通用 LLM（DeepSeek / GLM）
 
 **Subscription:** Tell user to run `claude setup-token` in another terminal, copy the token, add `CLAUDE_CODE_OAUTH_TOKEN=<token>` to `.env`. Do NOT collect the token in chat.
 
 **API key:** Tell user to add `ANTHROPIC_API_KEY=<key>` to `.env`.
+
+**通用 LLM（DeepSeek/GLM）：** 不依赖 Claude 工具套件，仅文本生成。引导用户：
+1. 应用技能：`npx tsx scripts/apply-skill.ts .claude/skills/add-generic-llm`
+2. 在 `.env` 设置：
+   ```
+   LLM_PROVIDER=generic
+   LLM_API_BASE=https://api.deepseek.com/v1   # 或 GLM: https://open.bigmodel.cn/api/paas/v4
+   LLM_MODEL=deepseek-chat                    # 或 GLM 模型名
+   LLM_API_KEY=sk-xxxxxx
+   ```
+3. 重启服务。此模式不需要 `/login`。若需恢复 Claude 全能力，移除上述 LLM_* 环境变量。
 
 ## 5. WhatsApp Authentication
 
